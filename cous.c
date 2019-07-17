@@ -182,6 +182,8 @@ static void COUS_onData(dyad_Event *e)
             {
                 vec_push(ctx->recvBuf, 0);
                 printf("[COUS] text:\n%s\n", ctx->recvBuf->data);
+
+                COUS_sendText(ctx->recvBuf->data, ctx->recvBuf->length);
                 break;
             }
             case WS_FrameOp_Binary:
@@ -221,10 +223,6 @@ void COUS_sendText(const char* text, u32 len)
 {
 
 }
-
-
-
-
 
 
 
