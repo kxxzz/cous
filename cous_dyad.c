@@ -195,7 +195,7 @@ static void COUS_onData(dyad_Event *e)
 
                 COUS_sendText(ctx->recvBuf->data, ctx->recvBuf->length);
 
-                COUS_sendClose();
+                //COUS_sendClose();
                 break;
             }
             case WS_FrameOp_Binary:
