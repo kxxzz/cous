@@ -143,12 +143,12 @@ static void COUS_onData(dyad_Event *e)
             }
             else if (payloadLength == 126)
             {
-                payloadLength = ntohs(*(u16*)&e->data[2]);
+                payloadLength = ntohs(*(u16*)(e->data + 2));
                 msgData = e->data + 2 + 2;
             }
             else if (payloadLength == 127)
             {
-                payloadLength = (u32)ntohll(*(u64*)&e->data[2]);
+                payloadLength = (u32)ntohll(*(u64*)(e->data + 2));
                 msgData = e->data + 2 + 8;
             }
 
@@ -260,7 +260,7 @@ static COUS_send(WS_FrameOp opcode, const char* data, u32 len)
         *(uint64_t*)(header + 2) = htonll(len);
     }
 
-    dyad_write(ctx->s, ctx->sendBuf->data, headerSize);
+    dyad_write(ctx->s, header, headerSize);
     dyad_write(ctx->s, data, len);
 }
 
