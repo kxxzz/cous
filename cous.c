@@ -41,14 +41,16 @@ typedef struct COUS_Context
     bool handshaked;
     WS_FrameOp opState;
     u32 remain;
-    vec_char dataBuf[1];
+    vec_char sendBuf[1];
+    vec_char recvBuf[1];
 } COUS_Context;
 
 static COUS_Context ctx[1] = { 0 };
 
 static void COUS_contextFree(void)
 {
-    vec_free(ctx->dataBuf);
+    vec_free(ctx->recvBuf);
+    vec_free(ctx->sendBuf);
     memset(ctx, 0, sizeof(*ctx));
 }
 
@@ -81,7 +83,7 @@ static void COUS_onConnect(dyad_Event *e)
 
     const char* requestFmt =
         "GET %s HTTP/1.1\r\n"
-        "Host: %s\r\n"
+        "Host: %s:%u\r\n"
         "Connection: Upgrade\r\n"
         "Upgrade: websocket\r\n"
         "Sec-WebSocket-Version: " WS_SEC_WEBSOCKET_VERSION "\r\n"
@@ -96,7 +98,17 @@ static void COUS_onConnect(dyad_Event *e)
     char keyStr[((WS_KEY_SIZE + 2) / 3 * 4) + 1];
     base64encode(keyStr, (char*)key, WS_KEY_SIZE);
 
-    dyad_writef(ctx->s, requestFmt, ctx->uri, ctx->host, keyStr);
+    s32 n = snprintf(NULL, 0, requestFmt, ctx->uri, ctx->host, ctx->port, keyStr);
+    vec_resize(ctx->sendBuf, n + 1);
+    n = snprintf(ctx->sendBuf->data, ctx->sendBuf->length, requestFmt, ctx->uri, ctx->host, ctx->port, keyStr);
+    if (n > 0)
+    {
+        dyad_write(ctx->s, ctx->sendBuf->data, n);
+    }
+    else
+    {
+        // report
+    }
 }
 
 
@@ -149,7 +161,7 @@ static void COUS_onData(dyad_Event *e)
             }
             ctx->opState = opcode;
             ctx->remain = payloadLength;
-            vec_resize(ctx->dataBuf, 0);
+            vec_resize(ctx->recvBuf, 0);
         }
         else
         {
@@ -162,7 +174,7 @@ static void COUS_onData(dyad_Event *e)
             msgLen = min(msgLen, ctx->remain);
             ctx->remain -= msgLen;
 
-            vec_pusharr(ctx->dataBuf, msgData, msgLen);
+            vec_pusharr(ctx->recvBuf, msgData, msgLen);
         }
         if (msgLen && !ctx->remain)
         {
@@ -170,13 +182,13 @@ static void COUS_onData(dyad_Event *e)
             {
             case WS_FrameOp_Text:
             {
-                vec_push(ctx->dataBuf, 0);
-                printf("[COUS] text:\n%s\n", ctx->dataBuf->data);
+                vec_push(ctx->recvBuf, 0);
+                printf("[COUS] text:\n%s\n", ctx->recvBuf->data);
                 break;
             }
             case WS_FrameOp_Binary:
             {
-                printf("[COUS] binrary size:%u\n", ctx->dataBuf->length);
+                printf("[COUS] binrary size:%u\n", ctx->recvBuf->length);
                 break;
             }
             case WS_FrameOp_Close:
@@ -193,7 +205,7 @@ static void COUS_onData(dyad_Event *e)
             }
             default:
                 printf("[COUS] unhandled opcode=%u\n", ctx->opState);
-                printf("\n%s\n", ctx->dataBuf->data);
+                printf("\n%s\n", ctx->recvBuf->data);
                 break;
             }
             ctx->opState = WS_FrameOp_Continuation;

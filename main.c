@@ -300,6 +300,7 @@ int main(int argc, char* argv[])
 #endif
     //startTestServer();
     test();
+    //sleep_ms(100000000000);
     //stopTestServer();
 #ifdef _WIN32
     WSACleanup();
