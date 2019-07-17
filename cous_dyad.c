@@ -194,6 +194,8 @@ static void COUS_onData(dyad_Event *e)
                 printf("[COUS] text:\n%s", ctx->recvBuf->data);
 
                 COUS_sendText(ctx->recvBuf->data, ctx->recvBuf->length);
+
+                COUS_sendClose();
                 break;
             }
             case WS_FrameOp_Binary:
@@ -231,7 +233,6 @@ static void COUS_onData(dyad_Event *e)
 
 static COUS_send(WS_FrameOp opcode, const char* data, u32 len)
 {
-    assert((WS_FrameOp_Binary == opcode) || (WS_FrameOp_Text == opcode));
     u8 finalFragment = 1;
     const u8 masked = 1;
     u8 headerSize = 2;
@@ -297,6 +298,10 @@ void COUS_sendBinrary(const char* data, u32 len)
     COUS_send(WS_FrameOp_Binary, data, len);
 }
 
+void COUS_sendClose(void)
+{
+    COUS_send(WS_FrameOp_Close, NULL, 0);
+}
 
 
 

@@ -26,8 +26,7 @@ bool COUS_update(void);
 
 void COUS_sendText(const char* text, u32 len);
 void COUS_sendBinrary(const char* data, u32 len);
-
-
+void COUS_sendClose(void);
 
 
 
