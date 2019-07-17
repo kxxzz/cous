@@ -243,19 +243,21 @@ static COUS_send(WS_FrameOp opcode, const char* data, u32 len)
     }
     else
     {
-        headerSize += 4;
+        headerSize += 8;
         payloadField = 127;
     }
     vec_resize(ctx->sendBuf, headerSize);
     char* header = ctx->sendBuf->data;
     memset(header, 0, headerSize);
-    header[0] = finalFragment << 7 | opcode;
+    header[0] = finalFragment << 7 | (u8)opcode;
     header[1] = payloadField;
-    if (payloadField == 126) {
-        *(uint16_t*)&header[2] = htons((u_short)len);
+    if (126 == payloadField)
+    {
+        *(uint16_t*)(header + 2) = htons((u_short)len);
     }
-    else if (payloadField == 127) {
-        *(uint64_t*)&header[2] = htonll(len);
+    else if (127 == payloadField)
+    {
+        *(uint64_t*)(header + 2) = htonll(len);
     }
 
     dyad_write(ctx->s, ctx->sendBuf->data, headerSize);
