@@ -20,12 +20,9 @@ typedef double f64;
 
 
 
-
-
-
-
-
-
+int COUS_connect(const char* host, u32 port, const char* uri);
+void COUS_cleanup(void);
+bool COUS_update(void);
 
 
 

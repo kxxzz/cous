@@ -37,13 +37,23 @@ set (CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -DDEBUG")
 
 
 
-
+include_directories (imp)
+include_directories (imp/vec)
 include_directories (imp/dyad)
+include_directories (imp/threads)
+include_directories (imp/webby)
 
 file (GLOB IMP_SRC_FILES
+    imp/*.h
+    imp/vec/*.h
+    imp/vec/*.c
     imp/dyad/*.h
     imp/dyad/*.c
+    imp/threads/threads.h
+    imp/webby/*.h
+    imp/webby/*.c
     )
+list(FILTER IMP_SRC_FILES EXCLUDE REGEX "main.c$")
 
 source_group (imp FILES ${IMP_SRC_FILES})
 add_library (imp STATIC ${IMP_SRC_FILES})
