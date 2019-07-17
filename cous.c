@@ -217,6 +217,29 @@ static void COUS_onData(dyad_Event *e)
 
 
 
+void COUS_sendText(const char* text, u32 len)
+{
+
+}
+
+
+
+
+
+
+
+void COUS_sendBinrary(const char* data, u32 len)
+{
+
+}
+
+
+
+
+
+
+
+
 int COUS_connect(const char* host, u32 port, const char* uri)
 {
     stzncpy(ctx->host, host, HOST_NAME_MAX);

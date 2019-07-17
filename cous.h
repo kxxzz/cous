@@ -24,8 +24,8 @@ int COUS_connect(const char* host, u32 port, const char* uri);
 void COUS_cleanup(void);
 bool COUS_update(void);
 
-
-
+void COUS_sendText(const char* text, u32 len);
+void COUS_sendBinrary(const char* data, u32 len);
 
 
 
