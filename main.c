@@ -260,7 +260,7 @@ static void stopTestServer(void)
 
 static void test(void)
 {
-    int r = COUS_connect("127.0.0.1", 18081, "/");
+    int r = COUS_connect("127.0.0.1", 18081, "/flex.exe");
     assert(r == 0);
     while (COUS_update())
     {
@@ -298,9 +298,9 @@ int main(int argc, char* argv[])
         }
     }
 #endif
-    startTestServer();
+    //startTestServer();
     test();
-    stopTestServer();
+    //stopTestServer();
 #ifdef _WIN32
     WSACleanup();
 #endif

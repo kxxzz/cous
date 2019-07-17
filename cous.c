@@ -66,6 +66,11 @@ static void COUS_onTimeout(dyad_Event *e)
     printf("[COUS] timeout: %s\n", e->msg);
 }
 
+static void COUS_onClose(dyad_Event *e)
+{
+    printf("[COUS] closed: %s\n", e->msg);
+    ctx->connected = false;
+}
 
 
 
@@ -77,8 +82,8 @@ static void COUS_onConnect(dyad_Event *e)
     const char* requestFmt =
         "GET %s HTTP/1.1\r\n"
         "Host: %s\r\n"
-        "Upgrade: websocket\r\n"
         "Connection: Upgrade\r\n"
+        "Upgrade: websocket\r\n"
         "Sec-WebSocket-Version: " WS_SEC_WEBSOCKET_VERSION "\r\n"
         "Sec-WebSocket-Key: %s\r\n"
         "\r\n";
@@ -213,6 +218,7 @@ int COUS_connect(const char* host, u32 port, const char* uri)
     ctx->s = s;
     dyad_addListener(s, DYAD_EVENT_ERROR, COUS_onError, NULL);
     dyad_addListener(s, DYAD_EVENT_TIMEOUT, COUS_onTimeout, NULL);
+    dyad_addListener(s, DYAD_EVENT_CLOSE, COUS_onClose, NULL);
     dyad_addListener(s, DYAD_EVENT_CONNECT, COUS_onConnect, NULL);
     dyad_addListener(s, DYAD_EVENT_DATA, COUS_onData, NULL);
     int r = dyad_connect(s, host, port);
