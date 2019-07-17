@@ -11,8 +11,6 @@ enum
     MAX_REQUEST_PATH_LENGTH = 2048,
 };
 
-#define WS_SEC_WEBSOCKET_VERSION "13"
-
 
 
 typedef enum WS_FrameOp
@@ -86,7 +84,7 @@ static void COUS_onConnect(dyad_Event *e)
         "Host: %s:%u\r\n"
         "Connection: Upgrade\r\n"
         "Upgrade: websocket\r\n"
-        "Sec-WebSocket-Version: " WS_SEC_WEBSOCKET_VERSION "\r\n"
+        "Sec-WebSocket-Version: 13\r\n"
         "Sec-WebSocket-Key: %s\r\n"
         "\r\n";
 
