@@ -1,9 +1,14 @@
 #include "cous_a.h"
 
+
+#ifdef COUS_USE_DYAD
+
+
 #ifdef _WIN32
 # include <winsock2.h>
 # include <ws2tcpip.h>
 #endif
+
 
 #include <dyad.h>
 
@@ -352,6 +357,21 @@ bool COUS_update(void)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#endif
 
 
 

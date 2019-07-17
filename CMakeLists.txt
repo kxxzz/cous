@@ -13,6 +13,13 @@ include (FeatureSummary)
 include (CMakeDependentOption)
 
 
+set (IMPLIB_DIR "imp")
+
+set (CURL_DIR ${IMPLIB_DIR}/curl)
+include_directories (${CURL_DIR}/include)
+link_directories (${CURL_DIR}/lib)
+
+
 include_directories (.)
 add_definitions (-D_UNICODE -D_CRT_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES)
 
@@ -73,9 +80,12 @@ target_link_libraries (main imp)
 
 if (WIN32)
     target_link_libraries (main
+        libcurl_a
         version winmm imm32
         wldap32 crypt32 ws2_32 normaliz
         )
+else ()
+    target_link_libraries (main curl)
 endif ()
 
 
