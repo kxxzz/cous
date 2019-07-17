@@ -157,7 +157,6 @@ static void COUS_onData(dyad_Event *e)
                 u8 maskingKey[4];
                 memcpy(maskingKey, msgData, 4);
                 msgData += 4;
-                // unmask data
                 for (u32 i = 0; i < payloadLength; ++i)
                 {
                     msgData[i] ^= maskingKey[i % 4];
@@ -187,7 +186,7 @@ static void COUS_onData(dyad_Event *e)
             case WS_FrameOp_Text:
             {
                 vec_push(ctx->recvBuf, 0);
-                printf("[COUS] text:\n%s\n", ctx->recvBuf->data);
+                printf("[COUS] text:\n%s", ctx->recvBuf->data);
 
                 COUS_sendText(ctx->recvBuf->data, ctx->recvBuf->length);
                 break;
@@ -229,9 +228,10 @@ static COUS_send(WS_FrameOp opcode, const char* data, u32 len)
 {
     assert((WS_FrameOp_Binary == opcode) || (WS_FrameOp_Text == opcode));
     u8 finalFragment = 1;
-    u32 headerSize = 2;
+    const u8 masked = 1;
+    u8 headerSize = 2;
 
-    u32 payloadField;
+    u8 payloadField;
     if (len < 126)
     {
         payloadField = len;
@@ -246,22 +246,36 @@ static COUS_send(WS_FrameOp opcode, const char* data, u32 len)
         headerSize += 8;
         payloadField = 127;
     }
-    vec_resize(ctx->sendBuf, headerSize);
-    char* header = ctx->sendBuf->data;
-    memset(header, 0, headerSize);
-    header[0] = finalFragment << 7 | (u8)opcode;
-    header[1] = payloadField;
+    if (masked)
+    {
+        headerSize += 4;
+    }
+    vec_resize(ctx->sendBuf, headerSize + len);
+    char* sendBuf = ctx->sendBuf->data;
+    memset(sendBuf, 0, headerSize);
+    sendBuf[0] = finalFragment << 7 | (u8)opcode;
+    sendBuf[1] = masked << 7 | payloadField;
     if (126 == payloadField)
     {
-        *(uint16_t*)(header + 2) = htons((u_short)len);
+        *(uint16_t*)(sendBuf + 2) = htons((u_short)len);
     }
     else if (127 == payloadField)
     {
-        *(uint64_t*)(header + 2) = htonll(len);
+        *(uint64_t*)(sendBuf + 2) = htonll(len);
     }
+    memcpy(sendBuf + headerSize, data, len);
 
-    dyad_write(ctx->s, header, headerSize);
-    dyad_write(ctx->s, data, len);
+    if (masked)
+    {
+        char maskingKey[4];
+        *(u32*)maskingKey = rand();
+        memcpy(sendBuf + headerSize - 4, maskingKey, 4);
+        for (u32 i = 0; i < len; ++i)
+        {
+            sendBuf[headerSize + i] ^= maskingKey[i % 4];
+        }
+    }
+    dyad_write(ctx->s, sendBuf, headerSize + len);
 }
 
 
