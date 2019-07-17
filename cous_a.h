@@ -88,8 +88,8 @@ void base64encode(char* dst, const char* src, u32 len);
 
 
 
-#define COUS_USE_DYAD
-//#define COUS_USE_CURL
+//#define COUS_USE_DYAD
+#define COUS_USE_CURL
 
 
 

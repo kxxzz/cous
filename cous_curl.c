@@ -14,6 +14,58 @@
 
 
 
+curl_socket_t SCREEN_SyncClient_opensocketfunc(void* clientp, curlsocktype purpose, struct curl_sockaddr* address)
+{
+    SOCKET s = socket(address->family, address->socktype, address->protocol);
+    return s;
+}
+
+
+
+
+
+int COUS_connect(const char* host, u32 port, const char* uri)
+{
+    //struct curl_slist* headerList;
+    //CURL* handle = curl_easy_init();
+    //headerList = curl_slist_append(NULL, "HTTP/1.1 101 WebSocket Protocol Handshake");
+    //headerList = curl_slist_append(headerList, "Upgrade: WebSocket");
+    //headerList = curl_slist_append(headerList, "Connection: Upgrade");
+    //headerList = curl_slist_append(headerList, "Sec-WebSocket-Version: 13");
+    //headerList = curl_slist_append(headerList, "Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==");
+    //curl_easy_setopt(handle, CURLOPT_URL, url);
+    //curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headerList);
+    //curl_easy_setopt(handle, CURLOPT_OPENSOCKETFUNCTION, SCREEN_SyncClient_opensocketfunc);
+    //curl_easy_setopt(handle, CURLOPT_HEADERFUNCTION, my_func);
+    //curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, my_writefunc);
+    //curl_easy_perform(handle);
+
+
+    return 0;
+}
+
+
+
+
+
+
+
+
+void COUS_cleanup(void)
+{
+}
+
+
+
+
+
+
+
+
+bool COUS_update(void)
+{
+    return true;
+}
 
 
 
@@ -32,12 +84,17 @@
 
 
 
+void COUS_sendText(const char* text, u32 len)
+{
+}
 
+void COUS_sendBinrary(const char* data, u32 len)
+{
+}
 
-
-
-
-
+void COUS_sendClose(void)
+{
+}
 
 
 
