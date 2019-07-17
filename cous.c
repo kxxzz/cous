@@ -1,6 +1,12 @@
 #include "cous_a.h"
 
+#ifdef _WIN32
+# include <winsock2.h>
+# include <ws2tcpip.h>
+#endif
+
 #include <dyad.h>
+
 
 
 
@@ -142,7 +148,7 @@ static void COUS_onData(dyad_Event *e)
             }
             else if (payloadLength == 127)
             {
-                payloadLength = (u32)ntoh64(*(u64*)&e->data[2]);
+                payloadLength = (u32)ntohll(*(u64*)&e->data[2]);
                 msgData = e->data + 2 + 8;
             }
 
@@ -219,16 +225,55 @@ static void COUS_onData(dyad_Event *e)
 
 
 
-void COUS_sendText(const char* text, u32 len)
+static COUS_send(WS_FrameOp opcode, const char* data, u32 len)
 {
+    assert((WS_FrameOp_Binary == opcode) || (WS_FrameOp_Text == opcode));
+    u8 finalFragment = 1;
+    u32 headerSize = 2;
 
+    u32 payloadField;
+    if (len < 126)
+    {
+        payloadField = len;
+    }
+    else if (len <= 0xffff)
+    {
+        headerSize += 2;
+        payloadField = 126;
+    }
+    else
+    {
+        headerSize += 4;
+        payloadField = 127;
+    }
+    vec_resize(ctx->sendBuf, headerSize);
+    char* header = ctx->sendBuf->data;
+    memset(header, 0, headerSize);
+    header[0] = finalFragment << 7 | opcode;
+    header[1] = payloadField;
+    if (payloadField == 126) {
+        *(uint16_t*)&header[2] = htons((u_short)len);
+    }
+    else if (payloadField == 127) {
+        *(uint64_t*)&header[2] = htonll(len);
+    }
+
+    dyad_write(ctx->s, ctx->sendBuf->data, headerSize);
+    dyad_write(ctx->s, data, len);
 }
 
 
 
+
+
+void COUS_sendText(const char* text, u32 len)
+{
+    COUS_send(WS_FrameOp_Text, text, len);
+}
+
 void COUS_sendBinrary(const char* data, u32 len)
 {
-
+    COUS_send(WS_FrameOp_Binary, data, len);
 }
 
 

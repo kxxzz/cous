@@ -6,6 +6,7 @@
 
 
 
+
 void base64encode(char* dst, const char* src, u32 len)
 {
     const char base64chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789*/=";

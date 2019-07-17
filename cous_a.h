@@ -78,22 +78,6 @@ static char* stzncpy(char* dst, char const* src, u32 len)
 
 
 
-static u64 ntoh64(const u64 x)
-{
-    u64 x1;
-    u8* p = (u8*)&x1;
-    p[0] = (u8)(x >> 56);
-    p[1] = (u8)(x >> 48);
-    p[2] = (u8)(x >> 40);
-    p[3] = (u8)(x >> 32);
-    p[4] = (u8)(x >> 24);
-    p[5] = (u8)(x >> 16);
-    p[6] = (u8)(x >> 8);
-    p[7] = (u8)(x >> 0);
-    return x1;
-}
-
-
 
 
 
