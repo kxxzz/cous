@@ -1,6 +1,5 @@
 #include "cous_a.h"
 
-#include <dyad.h>
 
 
 
