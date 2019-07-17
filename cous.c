@@ -6,7 +6,7 @@
 
 enum
 {
-    WS_KEY_SIZE = 20,
+    WS_KEY_SIZE = 16,
     HOST_NAME_MAX = 64,
     MAX_REQUEST_PATH_LENGTH = 2048,
 };
