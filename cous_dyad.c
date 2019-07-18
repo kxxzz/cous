@@ -15,30 +15,6 @@
 
 
 
-enum
-{
-    WS_KEY_SIZE = 16,
-    HOST_NAME_MAX = 64,
-    MAX_REQUEST_PATH_LENGTH = 2048,
-};
-
-
-
-typedef enum WS_FrameOp
-{
-    WS_FrameOp_Continuation = 0x0,
-    WS_FrameOp_Text = 0x1,
-    WS_FrameOp_Binary = 0x2,
-    WS_FrameOp_DataUnused = 0x3,
-    WS_FrameOp_Close = 0x8,
-    WS_FrameOp_Ping = 0x9,
-    WS_FrameOp_Pong = 0xA,
-    WS_FrameOp_ControlUnused = 0xB,
-} WS_FrameOp;
-
-
-
-
 
 typedef struct COUS_Context
 {
@@ -309,7 +285,7 @@ void COUS_sendClose(void)
 
 
 
-int COUS_connect(const char* host, u32 port, const char* uri)
+bool COUS_connect(const char* host, u32 port, const char* uri)
 {
     stzncpy(ctx->host, host, HOST_NAME_MAX);
     ctx->port = port;
@@ -328,9 +304,10 @@ int COUS_connect(const char* host, u32 port, const char* uri)
     {
         dyad_shutdown();
         COUS_contextFree();
+        return false;
     }
     ctx->connected = true;
-    return r;
+    return true;
 }
 
 

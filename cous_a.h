@@ -88,6 +88,50 @@ void base64encode(char* dst, const char* src, u32 len);
 
 
 
+
+
+
+enum
+{
+    WS_KEY_SIZE = 16,
+    HOST_NAME_MAX = 64,
+    MAX_REQUEST_PATH_LENGTH = 2048,
+};
+
+
+
+typedef enum WS_FrameOp
+{
+    WS_FrameOp_Continuation = 0x0,
+    WS_FrameOp_Text = 0x1,
+    WS_FrameOp_Binary = 0x2,
+    WS_FrameOp_DataUnused = 0x3,
+    WS_FrameOp_Close = 0x8,
+    WS_FrameOp_Ping = 0x9,
+    WS_FrameOp_Pong = 0xA,
+    WS_FrameOp_ControlUnused = 0xB,
+} WS_FrameOp;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //#define COUS_USE_DYAD
 #define COUS_USE_CURL
 

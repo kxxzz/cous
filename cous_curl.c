@@ -9,39 +9,115 @@
 # include <ws2tcpip.h>
 #endif
 
+#define CURL_STATICLIB
 #include <curl/curl.h>
 
 
 
 
-curl_socket_t SCREEN_SyncClient_opensocketfunc(void* clientp, curlsocktype purpose, struct curl_sockaddr* address)
+
+typedef struct COUS_Context
 {
-    SOCKET s = socket(address->family, address->socktype, address->protocol);
-    return s;
+    bool connected;
+    char host[HOST_NAME_MAX];
+    u32 port;
+    char uri[MAX_REQUEST_PATH_LENGTH];
+    CURL* handle;
+    bool handshaked;
+    WS_FrameOp opState;
+    u32 remain;
+    vec_char sendBuf[1];
+    vec_char recvBuf[1];
+} COUS_Context;
+
+static COUS_Context ctx[1] = { 0 };
+
+static void COUS_contextFree(void)
+{
+    vec_free(ctx->recvBuf);
+    vec_free(ctx->sendBuf);
+    memset(ctx, 0, sizeof(*ctx));
 }
 
 
 
 
 
-int COUS_connect(const char* host, u32 port, const char* uri)
+static curl_socket_t COUS_onOpensocket(void* clientp, curlsocktype purpose, struct curl_sockaddr* address)
 {
-    //struct curl_slist* headerList;
-    //CURL* handle = curl_easy_init();
-    //headerList = curl_slist_append(NULL, "HTTP/1.1 101 WebSocket Protocol Handshake");
-    //headerList = curl_slist_append(headerList, "Upgrade: WebSocket");
-    //headerList = curl_slist_append(headerList, "Connection: Upgrade");
-    //headerList = curl_slist_append(headerList, "Sec-WebSocket-Version: 13");
-    //headerList = curl_slist_append(headerList, "Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==");
-    //curl_easy_setopt(handle, CURLOPT_URL, url);
-    //curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headerList);
-    //curl_easy_setopt(handle, CURLOPT_OPENSOCKETFUNCTION, SCREEN_SyncClient_opensocketfunc);
-    //curl_easy_setopt(handle, CURLOPT_HEADERFUNCTION, my_func);
-    //curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, my_writefunc);
-    //curl_easy_perform(handle);
+    SOCKET s = socket(address->family, address->socktype, address->protocol);
+    return s;
+}
+
+static size_t COUS_onHeader(char* buffer, size_t size, size_t nitems, void* userdata)
+{
+    return size;
+}
+
+static size_t COUS_onWrite(char* ptr, size_t size, size_t nmemb, void* userdata)
+{
+    return size;
+}
 
 
-    return 0;
+
+
+
+
+bool COUS_connect(const char* host, u32 port, const char* uri)
+{
+    stzncpy(ctx->host, host, HOST_NAME_MAX);
+    ctx->port = port;
+    stzncpy(ctx->uri, uri, MAX_REQUEST_PATH_LENGTH);
+
+    CURLcode res;
+
+    struct curl_slist* headerList;
+    CURL* handle = curl_easy_init();
+    if (!handle)
+    {
+        return false;
+    }
+    ctx->handle = handle;
+    headerList = curl_slist_append(NULL, "HTTP/1.1 101 WebSocket Protocol Handshake");
+    headerList = curl_slist_append(headerList, "Upgrade: WebSocket");
+    headerList = curl_slist_append(headerList, "Connection: Upgrade");
+    headerList = curl_slist_append(headerList, "Sec-WebSocket-Version: 13");
+    {
+        u32 key[WS_KEY_SIZE / 4];
+        for (u32 i = 0; i < WS_KEY_SIZE / 4; ++i)
+        {
+            key[i] = rand();
+        }
+        char keyStr[((WS_KEY_SIZE + 2) / 3 * 4) + 1];
+        base64encode(keyStr, (char*)key, WS_KEY_SIZE);
+
+        const char* requestFmt = "Sec-WebSocket-Key: %s";
+        s32 n = snprintf(NULL, 0, requestFmt, keyStr);
+        vec_resize(ctx->sendBuf, n + 1);
+        n = snprintf(ctx->sendBuf->data, ctx->sendBuf->length, requestFmt, keyStr);
+        headerList = curl_slist_append(headerList, ctx->sendBuf->data);
+    }
+
+    u32 n = snprintf(NULL, 0, "http://%s:%u/%s", host, port, uri);
+    vec_resize(ctx->sendBuf, n + 1);
+    snprintf(ctx->sendBuf->data, ctx->sendBuf->length, "http://%s:%u%s", host, port, uri);
+
+    curl_easy_setopt(handle, CURLOPT_URL, ctx->sendBuf->data);
+    curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headerList);
+    curl_easy_setopt(handle, CURLOPT_OPENSOCKETFUNCTION, COUS_onOpensocket);
+    curl_easy_setopt(handle, CURLOPT_HEADERFUNCTION, COUS_onHeader);
+    curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, COUS_onWrite);
+    res = curl_easy_perform(handle);
+    if (res != CURLE_OK)
+    {
+        const char* errStr = curl_easy_strerror(res);
+        printf("[COUS] error: %s", errStr);
+        curl_easy_cleanup(ctx->handle);
+        return false;
+    }
+    ctx->connected = true;
+    return true;
 }
 
 
@@ -53,6 +129,8 @@ int COUS_connect(const char* host, u32 port, const char* uri)
 
 void COUS_cleanup(void)
 {
+    curl_easy_cleanup(ctx->handle);
+    COUS_contextFree();
 }
 
 

@@ -260,8 +260,8 @@ static void stopTestServer(void)
 
 static void test(void)
 {
-    int r = COUS_connect("127.0.0.1", 18081, "/");
-    assert(r == 0);
+    bool r = COUS_connect("127.0.0.1", 18081, "/");
+    assert(r);
     while (COUS_update())
     {
     }
