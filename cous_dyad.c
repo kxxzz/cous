@@ -15,29 +15,8 @@
 
 
 
-
-typedef struct COUS_Context
-{
-    bool connected;
-    char host[HOST_NAME_MAX];
-    u32 port;
-    char uri[MAX_REQUEST_PATH_LENGTH];
-    dyad_Stream* s;
-    bool handshaked;
-    WS_FrameOp opState;
-    u32 remain;
-    vec_char sendBuf[1];
-    vec_char recvBuf[1];
-} COUS_Context;
-
 static COUS_Context ctx[1] = { 0 };
 
-static void COUS_contextFree(void)
-{
-    vec_free(ctx->recvBuf);
-    vec_free(ctx->sendBuf);
-    memset(ctx, 0, sizeof(*ctx));
-}
 
 
 
@@ -88,7 +67,7 @@ static void COUS_onConnect(dyad_Event *e)
     n = snprintf(ctx->sendBuf->data, ctx->sendBuf->length, requestFmt, ctx->uri, ctx->host, ctx->port, keyStr);
     if (n > 0)
     {
-        dyad_write(ctx->s, ctx->sendBuf->data, n);
+        dyad_write((dyad_Stream*)ctx->handle, ctx->sendBuf->data, n);
     }
     else
     {
@@ -97,7 +76,7 @@ static void COUS_onConnect(dyad_Event *e)
 }
 
 
-static void COUS_onData(dyad_Event *e)
+static void COUS_onData(dyad_Event* e)
 {
     if (!ctx->handshaked)
     {
@@ -257,7 +236,7 @@ static COUS_send(WS_FrameOp opcode, const char* data, u32 len)
             sendBuf[headerSize + i] ^= maskingKey[i % 4];
         }
     }
-    dyad_write(ctx->s, sendBuf, headerSize + len);
+    dyad_write((dyad_Stream*)ctx->handle, sendBuf, headerSize + len);
 }
 
 
@@ -293,7 +272,7 @@ bool COUS_connect(const char* host, u32 port, const char* uri)
 
     dyad_init();
     dyad_Stream* s = dyad_newStream();
-    ctx->s = s;
+    ctx->handle = s;
     dyad_addListener(s, DYAD_EVENT_ERROR, COUS_onError, NULL);
     dyad_addListener(s, DYAD_EVENT_TIMEOUT, COUS_onTimeout, NULL);
     dyad_addListener(s, DYAD_EVENT_CLOSE, COUS_onClose, NULL);
@@ -303,7 +282,7 @@ bool COUS_connect(const char* host, u32 port, const char* uri)
     if (r != 0)
     {
         dyad_shutdown();
-        COUS_contextFree();
+        COUS_contextFree(ctx);
         return false;
     }
     ctx->connected = true;
@@ -315,7 +294,7 @@ bool COUS_connect(const char* host, u32 port, const char* uri)
 void COUS_cleanup(void)
 {
     dyad_shutdown();
-    COUS_contextFree();
+    COUS_contextFree(ctx);
 }
 
 

@@ -121,6 +121,43 @@ typedef enum WS_FrameOp
 
 
 
+#define COUS_USE_DYAD
+//#define COUS_USE_CURL
+
+
+
+
+
+
+
+
+
+typedef struct COUS_Context
+{
+    bool connected;
+    char host[HOST_NAME_MAX];
+    u32 port;
+    char uri[MAX_REQUEST_PATH_LENGTH];
+    void* handle;
+    bool handshaked;
+    WS_FrameOp opState;
+    u32 remain;
+    vec_char sendBuf[1];
+    vec_char recvBuf[1];
+} COUS_Context;
+
+static void COUS_contextFree(COUS_Context* ctx)
+{
+    vec_free(ctx->recvBuf);
+    vec_free(ctx->sendBuf);
+    memset(ctx, 0, sizeof(*ctx));
+}
+
+
+
+#ifdef COUS_USE_CURL
+void COUS_onData(COUS_Context* ctx, char* data, u32 size);
+#endif
 
 
 
@@ -132,8 +169,7 @@ typedef enum WS_FrameOp
 
 
 
-//#define COUS_USE_DYAD
-#define COUS_USE_CURL
+
 
 
 
